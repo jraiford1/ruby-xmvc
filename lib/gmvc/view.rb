@@ -34,6 +34,7 @@ module GMVC
         end
       end
       @window.signal_connect('destroy') { self.on_destroy }
+      @window.signal_connect('delete_event') { self.on_delete_event }
     end
     def unhandled_signal(signal)
     end
@@ -56,7 +57,20 @@ module GMVC
     end
     def init_window
     end
+    def about_to_close
+      puts "about_to_close"
+      true # return true if its ok to close the window
+    end
+    def close
+      return if !self.about_to_close
+      @window.destroy
+    end
+    def on_delete_event
+      puts "on_delete_event"
+      !self.about_to_close
+    end
     def on_destroy
+      puts "on_destroy"
       return if @@all_views.delete?(self).nil?   # just in case 
       @@visible_windows -= 1
       @model.unregister_view(self) if !@model.nil?

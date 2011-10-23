@@ -10,7 +10,7 @@ class HelloView < GMVC::View
     "window1"
   end
   def unhandled_signal(signal)
-    puts "Unhandled, but defined, signal encountered: " + signal
+    puts "Unhandled signal encountered: " + signal
   end
 end
 

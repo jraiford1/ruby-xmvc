@@ -13,7 +13,7 @@ module GMVC
       @model = model
       @builder = Gtk::Builder::new
       self.create_objects
-      @window = builder.get_object(self.class.window_name)
+      @window = @builder.get_object(self.class.window_name)
       self.connect_signals
       @window.hide
       self.init_window

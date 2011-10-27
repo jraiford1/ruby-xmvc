@@ -1,4 +1,4 @@
-require_relative 'gmvc'
+require_relative '../../lib/gmvc'
 
 class CHBView < GMVC::View
 

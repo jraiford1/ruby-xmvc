@@ -1,1 +1,80 @@
-readme
+|------------------------------------------------------------------------------|
+
+Implementing this framework is simple:
+
+* Create a project directory ~/my_project
+* Create a ruby-mvc application file:
+
+   file:  ~/my_project/lib/my_project.rb
+   
+require 'ruby-gmvc'
+class MyProject < RMVC::DevApplication
+end
+
+* Run the application: 
+
+Run the application (ruby ~/my_project/lib/my_project.rb).  Since it is
+subclassed from RMVC::DevApplication, it will generate any files and
+directories that it expects.  Since nothing exists at this point, a project
+skeleton will be created.  Since the gtk2 support was required (ruby-gmvc),
+support for Ruby-GNOME2 will be included. 
+
+The application will end after building the scafolding as it hasn't been
+programmed to do anything yet.
+
+* Add a window:
+
+Create a new glade file and put it in the gmvc/controllers directory
+(~/my_project/lib/my_project/gmvc/controllers/my_window.glade).  Edit the new
+glade file and create a new top window.  Add some controls to it.  On the
+top level window and/or on the controls defined within, add some signal
+handlers.
+
+* Run the application again
+
+Run the application again (ruby ~/my_project/lib/my_project.rb).  Since
+MyProject is still subclassed from RMVC::DevApplication, before actually
+executing the application code, the framework will detect your new glade file
+and automatically create the class files for it.  Specifically, the following
+files are created:
+
+ ~/my_project/lib/my_project/gmvc/windows/my_window.rb - this is based on the
+ name of the glade file.  It is what your application will talk to when its
+ ready to open the window and programatically interact with it.
+ 
+ ~/my_project/lib/my_project/gmvc/views/my_window_window1.rb - this is based
+ on the name of the glade file and the name of the top level window contained
+ in it.  If multiple top level windows are defined in the glade file, each
+ will get its own file.
+ 
+ ~/my_project/lib/my_project/gmvc/controllers/my_window_controller.rb - this
+ is based on the name of the glade file.  All signal handlers defined in the
+ glade file will have signal handlers defined in this file with the same name.
+ 
+ ~/my_project/lib/my_project/models/my_window_model.rb - this is based on the
+ name of the window, which in this case happens to be based on the name of the
+ glade file.  The reason this is not stored in the gmvc directory is because
+ it is not dependant on gtk.  If another windowing system like ncurses is used,
+ you will want to create a ncmvc/windows/my_window.rb file which should
+ implement the same my_window in the style of ncurses.  It will share the same
+ my_window_model definition. 
+
+* Tell your application to open the window
+
+Modify your application file to open the window "my_window" when the
+application starts.
+
+   file:  ~/my_project/lib/my_project.rb
+
+require 'ruby-gmvc'
+class MyProject < RMVC::DevApplication
+  def main
+    self.open_window("my_window")
+  end
+end
+
+* Once the application is completely written, change the application file so
+  the application class is subclassed from RVMC::Application instead of 
+  RVMC::DevApplication.  This will prevent the framework for looking for
+  changes to integrate before starting up.
+  

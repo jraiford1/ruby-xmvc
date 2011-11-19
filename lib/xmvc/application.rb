@@ -1,4 +1,12 @@
 module XMVC
+  
+  def self.convert_to_camelcase(str)
+    if str !~ /_/ && str =~ /[A-Z]+.*/ 
+      str 
+    else 
+      str.split('_').map{ |e| e.capitalize }.join 
+    end 
+  end 
   class Application
     def run
       self.main
@@ -7,6 +15,12 @@ module XMVC
     def main ; end
   end
   class DevApplication < Application
+    def initialize
+      self.require_code_generators
+    end
+    def require_code_generators
+      require_relative 'code_generator'
+    end
     def run
       if self.should_build_scaffolding?
         src = self.method(:main).source_location

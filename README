@@ -82,3 +82,80 @@ end
   RVMC::DevApplication.  This will prevent the framework for looking for
   changes to integrate before starting up.
   
+|------------------------------------------------------------------------------|
+DevApplication startup design
+
+* XMVC makes sure basic folder layout exists:
+~/my_project
+~/my_project/bin
+~/my_project/lib
+~/my_project/lib/model
+~/my_project/lib/window
+~/my_project/test
+
+* GMVC makes sure gtk2 folder layout exists:
+~/my_project/lib/gtk2
+~/my_project/lib/gtk2/controller
+~/my_project/lib/gtk2/glade
+~/my_project/lib/gtk2/view
+
+* XMVC makes sure project files exist
+~/my_project/
+~/my_project/Rakefile
+~/my_project/README
+~/my_project/bin/my_project
+~/my_project/test/
+
+* GMVC loops over all glade files (GMVC::GladeFile)
+* Ask glade file if its new or changed
+* If neither, remove from list of glade files to worry about
+* Ask glade file to load its supporting files (if they exist)
+
+** XMVC::WindowFile
+* Nothing to double check.  If the file exists, assume it is good
+* Module: XMVCApp
+* Class: <GladeBaseName>
+* Methods: -none-
+* File name: project/lib/gtk2/<glade_base_name>.rb
+
+** XMVC::ModelFile
+* Nothing to double check.  If the file exists, assume it is good
+* Module: XMVCApp
+* Class: <WindowClassName>Model
+* Methods: -none-
+* File name: project/lib/model/<window_base_name>_model.rb
+
+** GMVC::View
+* Nothing to double check.  If the file exists, assume it is good
+* Module: GMVCApp
+* Class: <WindowClassName>_<TopLevelWindowNameInGladeFile>
+* Methods: -none-
+* File name: project/lib/gtk2/<window_base_name>_<top_level_window_name_in_glade_file>.rb
+
+** GMVC::Controller
+* Compare signals defined for window and make sure signal handlers are defined
+* Module: GMVCApp
+* Class: <WindowClassName>Controller
+* Methods: handler method named after handler name listed in glade file
+* File name: project/lib/gtk2/<window_base_name>_controller.rb
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

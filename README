@@ -128,7 +128,7 @@ DevApplication startup design
 ** GMVC::View
 * Nothing to double check.  If the file exists, assume it is good
 * Module: GMVCApp
-* Class: <WindowClassName>_<TopLevelWindowNameInGladeFile>
+* Class: <WindowClassName>View<TopLevelWindowNameInGladeFile>
 * Methods: -none-
 * File name: project/lib/gtk2/<window_base_name>_<top_level_window_name_in_glade_file>.rb
 
@@ -141,11 +141,74 @@ DevApplication startup design
 
 
 
+|------------------------------------------------------------------------------|
+
+gtk notes
+
+* Of of the process of elimination, the controller is responsible for the glade
+  file.  Neither the model nor the window are gtk specific and there may be more
+  than one view in a single glade file.
+
+
+
+|------------------------------------------------------------------------------|
+
+Opening windows:
+
+The application talks to the Window class.
+
+win = MyWindow.new
+win.param = 123
+win.show(:modal, :maximized)
+app.perform_window_events
+
+The window is responsible for creating the model and the appropriate controller
+and views for the current windowing system.  At this point, the model, views,
+and controller work independently until the window is closed.  Afterwards, the
+app can query the window for values from the window.
+
+puts win.param
+
+Multiple windows can share the same model if needed.
+
+win1 = MyWindow.new
+win1.open
+win2 = MyWindow.new
+win2.model = win1.model
+win1.show
+win2.show
+app.perform_window_events
 
 
 
 
+|------------------------------------------------------------------------------|
 
+A XMVC::Application "talks" to a XMVC::Window.  XMVC::Window has a 1 to 1
+relationship with a GMVC::Controller (or a controller from another windowing
+system).  The difference is that a GMVC::Controller is specific to a windowing
+system.  Also, a GMVC::Controller only handles user input and acts as the glue between
+a XMVC::Model and a GMVC::View, where a XMVC::Window "talks" to the XMVC::Model,
+allowing you to initialize the state of a window on the screen or to retrieve
+information about a window after its closed.
+
+A GMVC::View only displays the current state of the XMVC::Model.  Any input
+from the user is handled by the GMVC::Controller, which is responsible for
+either initiating a change in state in the XMVC::Model or changing the
+GMVC::View (in a way that does not change the state of the XMVC::Model).
+Consider this scenario:
+
+# GMVC::Application code:
+calc = CalculatorWindow.new
+calc.show
+app.perform_window_events
+
+## The user selects the menu item View->Scientific
+
+# GMVC::Controller code:
+def on_view_scientific
+  self.change_view(@views[:scientific])
+end
 
 
 

@@ -1,80 +1,47 @@
-require 'gtk2'
-module GMVC
-  class Window < Gtk::Builder
-    # By default the glade file will be the same as the class name with a .glade suffix
-    def self.glade_filename
-      self.name.split("::").last.downcase + ".glade"
-    end
-    # By default the main window name will be the same as the class name
-    def self.window_name
-      self.name.split("::").last.downcase
-    end
-    # Initialize our extra variables
-    def initialize(*args)
-      super
-      @attached_objects = Hash.new
-    end
-    # Load the associated glade file
-    def load
-      self.load_from_file(self.class.glade_filename)
-      self.attach_to_object(self.class.window_name, self)
-    end
-    # Replace the restrictive __connect_signals__ from Gtk::Builder
-    def __connect_signals__(connector, object, signal_name, handler_name, connect_object, flags)
-      handler_name = canonical_handler_name(handler_name)
-      attached_object = @attached_objects[object]
-      
-      # Instead of having a single if/elsif statement, we want to be able to 
-      # ask the connector block to attach the signal even if there is an attached
-      # object or a connect_object and no handler was defined
-      if attached_object and attached_object.methods.include?(handler_name)
-        handler = attached_object.method(handler_name)
-      end
-      if !handler and connect_object
-        handler = connect_object.method(handler_name)
-      end
-      if !handler
-        handler = connector.call(handler_name, object, signal_name)
-      end
-      unless handler
-        $stderr.puts("Undefined handler: #{handler_name}") if $DEBUG
-        return
-      end
-
-      if flags.after?
-        signal_connect_method = :signal_connect_after
-      else
-        signal_connect_method = :signal_connect
-      end
-
-      if handler.arity.zero?
-        object.send(signal_connect_method, signal_name) {handler.call}
-      else
-        object.send(signal_connect_method, signal_name, &handler)
-      end
+module XMVC
+  class Window
+    attr_reader :model, :controller
+    
+    # Initialize class instance variables whenever we are subclassed
+    def self.inherited(subclass)
+      subclass.initialize
     end
     
-    # Call this prior to connecting signals to attach signals to ruby objects
-    def attach_to_object(gobject, object)
-      gobject = self.get_object(gobject) if gobject.kind_of?(String)
-      if object
-        @attached_objects[gobject] = object
-      else
-        @attached_objects.delete(gobject)
-      end      
+    # Initialize all class instance variables
+    def self.initialize
+      return if @initialized
+      ary = self.class.name.split('::')
+      raise "Window class #{ary.last} is not named properly - must end in 'Window'" if ary.last[-6..-1] != "Window"
+      @window_class_name = ary.pop
+      @model_class_name = @window_class_name + 'Model'
+      @controller_class_name = @window_class_name + 'Controller'
+      @my_module_name = ary.join('::')
+      @my_module = eval(@my_module_name)
+      raise "Window class #{@window_class_name} is not defined in a module" if !@my_module
+      @model_class.const_get(@model_class_name)
+      @initialized = true
     end
     
+    # Return the controller class for the given windowing system
+    def self.controller_class(windowing_system = $application.windowing_system)
+      windowing_system.const_get(@controller_class_name)
+    end
     
-    ## TODO: Everything below here is still being reworked and may end up in other classes
-    def self.open
-      self.new.open
+    # Initialize the new window instance
+    def initialize(model = self.class.model_class.new, windowing_system = $application.windowing_system)
+      raise "Model #{model} is not a valid model" if !model.kind_of?(XMVC::Model)
+      @model = model
+      @controller = self.class.controller_class(windowing_system).new(@model)
     end
-    def open
-      self.open_view(self.default_view_class)
-    end
-    def open_view(view_class)
-      @view = view_class.new(self, @model)
-      self          # return self
-    end
+    
+    # Pass some things off to the model
+    def [] element ; @model[element] ; end
+    def []= element, value ; @model[element] = value ; end
+    
+    # Pass some things off to the controller
+    def hide ; @controller.hide ; end
+    def show ; @controller.show ; end
+    def show_modal ; @controller.show_modal ; end
+    
   end
 end

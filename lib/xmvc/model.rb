@@ -1,10 +1,14 @@
-module GMVC
+module XMVC
   class Model
+    
+    # Initialize the new model instance
     def initialize
       @views = Set.new
     end
-    def register_view(view)
-      @views << view
+    
+    # Register an object to receive change events
+    def register(obj)
+      @ << view
       true
     end
     def unregister_view(view)

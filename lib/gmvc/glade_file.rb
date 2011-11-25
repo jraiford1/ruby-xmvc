@@ -27,27 +27,9 @@ module GMVC
     def build_scaffolding
       
     end
-    def process_glade_file(glade_file)
-      hsh = Hash.new
-      hsh[:glade] = glade_file
-      
-      builder = Gtk::Builder.new
-      builder.add_from_file(glade_file)
-      hsh[:builder] = builder
-      
-      hsh[:base_name] = base
-      
-      hsh[:model_filename] = File.join(@project_directory, 'lib', 'model', base + '_model.rb')
-      rf = XMVC::RubyFile.new
-      hsh[:model_file] = rf if rf.load_from_file(hsh[:model_filename])
-      
-      hsh[:window_filename] = File.join(@project_directory, 'lib', 'window', base + '_window.rb')
-      rf = XMVC::RubyFile.new
-      hsh[:window_file] = rf if rf.load_from_file(hsh[:window_filename])
-      
-      hsh[:controller_filename] = File.join(@project_directory, 'lib', 'gtk2', 'controller', base + '_controller.rb')
-      rf = XMVC::RubyFile.new
-      hsh[:controller_file] = rf if rf.load_from_file(hsh[:controller_filename])
+    def load_file      
+      @builder = Gtk::Builder.new
+      @builder.add_from_file(@filename)
       
       hsh[:sig_handlers] = Hash.new
       builder.connect_signals do |handler|
@@ -71,9 +53,6 @@ module GMVC
       self.process_view_files(hsh)
       
       hsh
-    end
-    def build_scaffolding
-      
     end
   end
 end

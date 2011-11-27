@@ -158,7 +158,7 @@ Opening windows:
 The application talks to the Window class.
 
 win = MyWindow.new
-win.param = 123
+win[param] = 123
 win.show(:modal, :maximized)
 app.perform_window_events
 

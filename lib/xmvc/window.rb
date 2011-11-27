@@ -1,6 +1,6 @@
 module XMVC
   class Window
-    attr_reader :model, :controller
+    attr_reader :model, :windowing_system, :view, :views, :controller
     
     # Initialize class instance variables whenever we are subclassed
     def self.inherited(subclass)
@@ -31,7 +31,8 @@ module XMVC
     def initialize(model = self.class.model_class.new, windowing_system = $application.windowing_system)
       raise "Model #{model} is not a valid model" if !model.kind_of?(XMVC::Model)
       @model = model
-      @controller = self.class.controller_class(windowing_system).new(@model)
+      @windowing_system = windowing_system
+      @controller = self.class.controller_class(@windowing_system).new(@model)
     end
     
     # Pass some things off to the model
@@ -40,8 +41,99 @@ module XMVC
     
     # Pass some things off to the controller
     def hide ; @controller.hide ; end
-    def show ; @controller.show ; end
-    def show_modal ; @controller.show_modal ; end
-    
+    def show(*args) ; @controller.show(*args) ; end
+    # Return true if the window is currently visible
+    def visible? ; @controller.visible? ; end
+    # Set up all the needed objects and relationships, but don't display the window
+    def open(*args) ; @controller.change_view(*args) ; end
+    def close(*args) ; @controller.close(*args) ; end
   end
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

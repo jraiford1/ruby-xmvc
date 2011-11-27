@@ -4,7 +4,7 @@ module GMVC
     def initialize(filename)
       raise "Glade file doesn't exist! (#{filename})" if !File.exists?(filename)
       @filename = filename
-      base = File.basename(glade_file, '.glade')
+      base = File.basename(@filename, '.glade')
       project_directory = File.absolute_path(File.join(File.split(@filename).first, '../../..'))
       @window = XMVC::WindowFile.new(File.join(project_directory, 'lib', 'window', base + '_window.rb'))
       @model = XMVC::ModelFile.new(File.join(project_directory, 'lib', 'model', base + '_model.rb'))
@@ -15,6 +15,7 @@ module GMVC
     # Return true if the glade file has updates (if its modification date is newer
     # than its supporting files)
     def has_updates?
+      return true # assume there are changes for now
       return true if @controller.mtime.nil? or @mtime > @controller.mtime
       return true if @window.mtime.nil? # or @mtime > @window.mtime
       return true if @model.mtime.nil? # or @mtime > @model.mtime

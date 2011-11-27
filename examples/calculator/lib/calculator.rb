@@ -1,9 +1,14 @@
 require_relative '../../../lib/gmvc'
+require_relative 'window/calculator_window'
 
-class CalculatorApp < GMVC::DevApplication
-  def main
-    
+module XMVCApp
+  class CalculatorApp < GMVC::DevApplication
+    def main
+      win = CalculatorWindow.new
+      win.show
+      self.perform_window_events
+    end
   end
 end
 
-CalculatorApp.new.run
+XMVCApp::CalculatorApp.new.run

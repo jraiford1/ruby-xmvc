@@ -1,16 +1,14 @@
-require_relative '../xmvc/ruby_file.rb'
-
 module GMVC
-  class WindowFile < XMVC::RubyFile
+  class WindowFile < XMVC::WindowFile
     
   end
-  class ModelFile < XMVC::RubyFile
+  class ModelFile < XMVC::ModelFile
     
   end
-  class ViewFile < XMVC::RubyFile
+  class ViewFile < XMVC::ViewFile
     
   end
-  class ControllerFile < XMVC::RubyFile
+  class ControllerFile < XMVC::ControllerFile
     
   end
 end

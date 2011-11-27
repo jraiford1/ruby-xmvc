@@ -7,13 +7,15 @@ module XMVC
     attr_accessor :rf_module, :rf_module_name, :rf_module_methods, :rf_module_instance_methods
     attr_accessor :rf_class, :rf_class_name, :rf_superclass_name, :rf_class_methods, :rf_class_instance_methods
     
-    def initialize
+    def initialize(file_name)
       @rf_requires = Array.new
       @rf_require_relatives = Array.new
       @rf_module_methods = Array.new
       @rf_module_instance_methods = Array.new
       @rf_class_methods = Array.new
       @rf_class_instance_methods = Array.new
+      @file_name = file_name
+      self.load_from_file(@file_name)
     end
     
     # Populate the instance based on the given file.  Return true if successful and false otherwise.

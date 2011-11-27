@@ -28,8 +28,8 @@ programmed to do anything yet.
 
 * Add a window:
 
-Create a new glade file and put it in the gmvc/controllers directory
-(~/my_project/lib/my_project/gmvc/controllers/my_window.glade).  Edit the new
+Create a new glade file and put it in the gtk2/glade directory
+(~/my_project/lib/my_project/lib/gtk2/glade/my_window.glade).  Edit the new
 glade file and create a new top window.  Add some controls to it.  On the
 top level window and/or on the controls defined within, add some signal
 handlers.
@@ -42,26 +42,23 @@ executing the application code, the framework will detect your new glade file
 and automatically create the class files for it.  Specifically, the following
 files are created:
 
- ~/my_project/lib/my_project/gmvc/windows/my_window.rb - this is based on the
+ ~/my_project/lib/window/my_window.rb - this is based on the
  name of the glade file.  It is what your application will talk to when its
  ready to open the window and programatically interact with it.
  
- ~/my_project/lib/my_project/gmvc/views/my_window_window1.rb - this is based
+ ~/my_project/lib/gtk2/view/my_window_window1.rb - this is based
  on the name of the glade file and the name of the top level window contained
  in it.  If multiple top level windows are defined in the glade file, each
  will get its own file.
  
- ~/my_project/lib/my_project/gmvc/controllers/my_window_controller.rb - this
+ ~/my_project/lib/gtk2/controller/my_window_controller.rb - this
  is based on the name of the glade file.  All signal handlers defined in the
  glade file will have signal handlers defined in this file with the same name.
  
- ~/my_project/lib/my_project/models/my_window_model.rb - this is based on the
+ ~/my_project/lib/model/my_window_model.rb - this is based on the
  name of the window, which in this case happens to be based on the name of the
- glade file.  The reason this is not stored in the gmvc directory is because
- it is not dependant on gtk.  If another windowing system like ncurses is used,
- you will want to create a ncmvc/windows/my_window.rb file which should
- implement the same my_window in the style of ncurses.  It will share the same
- my_window_model definition. 
+ glade file.  The reason this is not stored in the gtk2 directory is because
+ it is not dependant on gtk2.
 
 * Tell your application to open the window
 
@@ -75,7 +72,10 @@ class MyProject < RMVC::DevApplication
   def main
     self.open_window("my_window")
   end
-end
+end  If another windowing system like ncurses is used,
+ you will want to create a ncmvc/windows/my_window.rb file which should
+ implement the same my_window in the style of ncurses.  It will share the same
+ my_window_model definition. 
 
 * Once the application is completely written, change the application file so
   the application class is subclassed from RVMC::Application instead of 

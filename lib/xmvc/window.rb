@@ -10,20 +10,26 @@ module XMVC
     # Initialize all class instance variables
     def self.initialize
       return if @initialized
-      ary = self.class.name.split('::')
+      ary = self.name.split('::')
       raise "Window class #{ary.last} is not named properly - must end in 'Window'" if ary.last[-6..-1] != "Window"
       @window_class_name = ary.pop
-      @model_class_name = @window_class_name + 'Model'
-      @controller_class_name = @window_class_name + 'Controller'
+      @model_class_name = @window_class_name[0..-7] + 'Model'
+      @controller_class_name = @window_class_name[0..-7] + 'Controller'
+      @controller_file_name = XMVC::convert_to_underscores(@controller_class_name) + '.rb'
       @my_module_name = ary.join('::')
       @my_module = eval(@my_module_name)
       raise "Window class #{@window_class_name} is not defined in a module" if !@my_module
-      @model_class.const_get(@model_class_name)
+      @model_class = @my_module.const_get(@model_class_name)
       @initialized = true
+    end
+    
+    def self.model_class
+      @model_class
     end
     
     # Return the controller class for the given windowing system
     def self.controller_class(windowing_system = $application.windowing_system)
+      windowing_system.require_controller(@controller_file_name)
       windowing_system.const_get(@controller_class_name)
     end
     

@@ -3,12 +3,14 @@ module XMVC
     
     # Initialize the new model instance
     def initialize
-      @views = Set.new
+      #@views = Hash.new
     end
-    
+    def default_view_name
+      nil
+    end
     # Register an object to receive change events
     def register(obj)
-      @ << view
+      @views << obj
       true
     end
     def unregister_view(view)

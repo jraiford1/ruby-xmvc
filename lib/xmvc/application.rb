@@ -7,15 +7,27 @@ module XMVC
       str.split('_').map{ |e| e.capitalize }.join 
     end 
   end 
+  def self.convert_to_underscores(str)
+    str.gsub(/(.)([A-Z])/,'\1_\2').downcase
+  end
   class Application
+    def initialize
+      $application = self
+      src = self.method(:main).source_location
+      raise "Unable to find method location for self.main" if !src
+      $project_directory, lib = File.split(File.split(src.first).first)
+      raise 'Application not defined in lib directory' if lib != 'lib'
+    end
     def run
       self.main
     end
     # main should be implemented by subclass
     def main ; end
+    def perform_window_events ; end
   end
   class DevApplication < Application
     def initialize
+      super
       self.require_code_generators
     end
     def require_code_generators

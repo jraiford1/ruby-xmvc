@@ -1,7 +1,22 @@
 require 'gtk2'
 require_relative '../xmvc/application'
 
+module GMVCApp
+  def self.require_controller(controller_file)
+    require File.join($project_directory, 'lib/gtk2/controller', controller_file)
+  end
+  def self.require_view(view_file)
+    require File.join($project_directory, 'lib/gtk2/view', view_file)
+  end
+end
+
 module GMVC
+  
+  class Application < XMVC::Application
+    def windowing_system
+      GMVCApp
+    end
+  end
   class DevApplication < XMVC::DevApplication
     
     # GMVC::DevApplication::require_code_generators

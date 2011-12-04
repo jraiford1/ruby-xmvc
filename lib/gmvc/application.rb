@@ -16,6 +16,9 @@ module GMVC
     def windowing_system
       GMVCApp
     end
+    def perform_window_events
+      Gtk.main
+    end
   end
   class DevApplication < XMVC::DevApplication
     

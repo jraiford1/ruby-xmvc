@@ -10,6 +10,9 @@ module XMVC
   def self.convert_to_underscores(str)
     str.gsub(/(.)([A-Z])/,'\1_\2').downcase
   end
+  def self.require_model(model_file)
+    require File.join($project_directory, 'lib/model', model_file)
+  end
   class Application
     def initialize
       $application = self

@@ -32,7 +32,7 @@ module XMVC
     end
     
     def get_view(view_name)
-      self.class.get_view_class(view_name).new(@model, self)
+      self.class.get_view_class(view_name).new(@model, self, view_name)
     end
     
     def initialize(model)

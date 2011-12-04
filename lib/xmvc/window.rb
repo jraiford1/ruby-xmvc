@@ -14,17 +14,18 @@ module XMVC
       raise "Window class #{ary.last} is not named properly - must end in 'Window'" if ary.last[-6..-1] != "Window"
       @window_class_name = ary.pop
       @model_class_name = @window_class_name[0..-7] + 'Model'
+      @model_file_name = XMVC::convert_to_underscores(@model_class_name) + '.rb'
       @controller_class_name = @window_class_name[0..-7] + 'Controller'
       @controller_file_name = XMVC::convert_to_underscores(@controller_class_name) + '.rb'
       @my_module_name = ary.join('::')
       @my_module = eval(@my_module_name)
       raise "Window class #{@window_class_name} is not defined in a module" if !@my_module
-      @model_class = @my_module.const_get(@model_class_name)
       @initialized = true
     end
     
     def self.model_class
-      @model_class
+      XMVC::require_model(@model_file_name)
+      @model_class ||= @my_module.const_get(@model_class_name)
     end
     
     # Return the controller class for the given windowing system

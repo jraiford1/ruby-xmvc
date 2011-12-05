@@ -5,7 +5,8 @@ module GMVC
       super
       @builder = @controller.builder
       @gtk_window = @builder.get_object(@name)
-      @controller.attach_to_object(@gtk_window, self)
+      @builder.attach_to_object(@gtk_window, self)
+      @controller.connect_signals
       @gtk_window.signal_connect('delete_event') { self.on_delete_event }
       @gtk_window.signal_connect('destroy') { self.on_destroy }
     end

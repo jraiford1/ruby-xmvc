@@ -4,7 +4,7 @@ module GMVCApp
       super
       @entry = @builder.get_object("entry1")
       @entry.editable = false
-      @model.set_attribute_reaction("entry1", @entry) { |value| @entry.text = value }
+      @model.set_attribute_reaction("entry", @entry) { |value| @entry.text = value }
     end
   end
 end

@@ -7,5 +7,8 @@ module GMVCApp
       @entry.editable = false
       @model.set_attribute_reaction("entry", @entry) { |value| @entry.text = value }
     end
+    def about_to_close
+      false
+    end
   end
 end

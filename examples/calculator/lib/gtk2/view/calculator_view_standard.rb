@@ -3,9 +3,8 @@ module GMVCApp
     
     def initialize(*args)
       super
-      @entry = @builder.get_object("entry")
+      @entry = self.attach_widget_to_attribute('entry', 'entry', :text=)
       @entry.editable = false
-      @model.set_attribute_reaction("entry", @entry) { |value| @entry.text = value }
     end
     def about_to_close
       false

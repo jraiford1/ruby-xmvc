@@ -3,6 +3,7 @@ module GMVC
     attr_reader :builder
     def initialize(*args)
       super
+      @attached_widgets = Hash.new
       @builder = @controller.builder
       @gtk_window = @builder.get_object(@name)
       @builder.attach_to_object(@gtk_window, self)
@@ -18,6 +19,18 @@ module GMVC
           @gtk_window.show
         end
       end
+    end
+    def detach_widgets_from_attributes
+      @attached_widgets.each_key do |object, attribute|
+        @model.set_attribute_reaction(attribute, object)
+      end
+    end
+    def attach_widget_to_attribute(widget, attribute, assignment_method)
+      object = @builder.get_object(widget)
+      return nil if !object
+      @model.set_attribute_reaction(attribute, object) { |value| object.method(assignment_method).call(value) }
+      @attached_widgets[[object, attribute]] = assignment_method
+      object
     end
     
     def about_to_close
@@ -36,7 +49,7 @@ module GMVC
     end
     
     def on_destroy
-      
+      self.detach_widgets_from_attributes
       puts "on_destroy"
     end
   end

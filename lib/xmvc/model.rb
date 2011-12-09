@@ -21,6 +21,7 @@ module XMVC
     
     def set_attribute_reaction(attribute_name, key, &proc)
       reaction_list = @attribute_reactions[attribute_name] ||= Hash.new
+      return clear_attribute_reaction(attribute_name, key) if !proc
       reaction_list[key] = proc
     end
     

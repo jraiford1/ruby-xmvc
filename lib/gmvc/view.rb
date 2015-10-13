@@ -40,7 +40,7 @@ module GMVC
     
     def close
       return if !self.about_to_close
-      @window.destroy
+      @gtk_window.destroy
     end
     
     def on_delete_event

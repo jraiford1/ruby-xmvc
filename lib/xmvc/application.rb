@@ -19,7 +19,7 @@ module XMVC
       src = self.method(:main).source_location
       raise "Unable to find method location for self.main" if !src
       $project_directory, lib = File.split(File.split(src.first).first)
-      raise 'Application not defined in lib directory' if lib != 'lib'
+      raise "Application not defined in lib directory (#{lib})" if lib != 'lib'
     end
     def run
       self.main

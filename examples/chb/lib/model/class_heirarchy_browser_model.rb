@@ -1,5 +1,5 @@
 module XMVCApp
-  class CHBModel < GMVC::SuperModel
+  class ClassHeirarchyBrowserModel < XMVC::Model
     def save_changes
       true
     end

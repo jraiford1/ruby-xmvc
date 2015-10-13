@@ -1,5 +1,5 @@
 
-class CHBView < GMVC::View
+class ClassHeirarchyBrowserViewDefault < GMVC::View
 
   attr_reader :classes_treestore, :methods_liststores
   

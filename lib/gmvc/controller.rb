@@ -7,7 +7,7 @@ module GMVC
     end
     # By default the glade file will be the same as the class name with a .glade suffix
     def self.glade_filename
-      File.join(self.glade_directory, self.name.split("::").last.downcase[0..-11] + ".glade")
+      File.join(self.glade_directory, self.name.split("::").last.split(/(?=[A-Z])/)[0...-1].join("_").downcase + ".glade")
     end
     def self.glade_directory
       # return @@glade_directory if @@glade_directory

@@ -1,78 +1,148 @@
+require 'gtksourceview2'
 
-class ClassHeirarchyBrowserViewDefault < GMVC::View
+module GMVCApp
+  class ClassHeirarchyBrowserViewDefault < GMVC::View
+    attr_reader :methods_list, :source_code
+    attr_accessor :class_info
+    def init_window
+      super
+      self.init_class_tree        # Class TreeView
+      self.init_methods_selector  # Instance/Class Radio Buttons
+      self.init_variables_list    # Instance/Class Variables ListView
+      self.init_methods           # Instance/Class Methods ListView
+      self.init_source_code       # Source code SourceView
+    end
+    def init_class_tree
+      @class_tree = @builder.get_object("classes")
+      classes_treestore = self.classes_treestore
+      @class_tree.model = classes_treestore
+      @class_tree.headers_visible = false
+      @class_tree_renderer = Gtk::CellRendererText.new
+      @class_tree_column = Gtk::TreeViewColumn.new("Class Name", @class_tree_renderer, :text => 1)
+      @class_tree.append_column(@class_tree_column)
+      @class_tree.selection.set_select_function do |selection, class_tree_model, path, currently_selected|
+        @controller.on_class_selected(selection, class_tree_model, path, currently_selected)
+      end
+    end
+    def classes_treestore
+      classes_treestore = @model['classes_treestore']
+      if classes_treestore.nil?
+        classes_treestore = Gtk::TreeStore.new(Object,String)
+        @model.classes.root_classes.each do |root_class_info|
+          self.add_class_info(classes_treestore, nil, root_class_info)
+        end
+        classes_treestore.set_sort_column_id(1)
+        @model['classes_treestore'] = classes_treestore
+      end
+      classes_treestore
+    end
+    def add_class_info(treestore, parent, class_info)
+      iter = treestore.append(parent)
+      iter[0] = class_info
+      iter[1] = class_info.class_name
+      class_info.subclasses.each do |subclass_info|
+        self.add_class_info(treestore, iter, subclass_info)
+      end
+    end
+    def init_methods_selector
+      self.methods_selector = :instance_methods
+    end
+    def methods_selector=(symbol)
+      case symbol
+      when :instance_methods
+        radio_button = @builder.get_object("rb_instance")
+        radio_button.active = true
+      when :class_methods
+        radio_button = @builder.get_object("rb_class")
+        radio_button.active = true
+      else
+        raise ArgumentError.new("Invalid method selector '#{symbol}'")
+      end
+    end
+    def methods_selector
+      rb_instance = @builder.get_object("rb_instance")
+      if rb_instance.active?
+        return :instance_methods
+      end
+      rb_class = @builder.get_object("rb_class")
+      if rb_class.active?
+        return :class_methods
+      end
+      return nil
+    end
+    def init_variables_list
+      @variables_list = @builder.get_object("variables")
+    end
+    def init_methods
+      @methods_list = @builder.get_object("methods")
+      @methods_list.headers_visible = false
+      @methods_renderer = Gtk::CellRendererText.new
+      column = Gtk::TreeViewColumn.new("Method Name", @methods_renderer, :text => 1)
+      @methods_list.append_column(column)
+      @methods_list.selection.set_select_function do |selection, methods_model, path, currently_selected|
+        @controller.on_method_selected(selection, methods_model, path, currently_selected)
+      end
+    end
+    def method_liststore(class_info)
+      methods_liststores = @model['methods_liststores']
+      if methods_liststores.nil?
+        methods_liststores = {}
+        @model['methods_liststores'] = methods_liststores
+      end
+      liststore_name = "#{class_info.class_name}.#{self.methods_selector}".to_sym
+      method_liststore = methods_liststores[liststore_name]
+      if method_liststore.nil?
+        method_liststore = self.new_methods_liststore_for_class(class_info, self.methods_selector)
+        methods_liststores[liststore_name] = method_liststore
+      end
+      method_liststore
+    end
 
-  attr_reader :classes_treestore, :methods_liststores
-  
-    def placeholder
-      
-      self.load_treestore_from_hash(@classes_treestore, nil, @classes[nil]) {|iter, cls| iter[0] = cls.name } 
-      @classes_treestore.set_sort_column_id(0)
+    def init_source_code
+      @source_code = Gtk::SourceView.new
+      @builder.get_object("source_code_sw").add(@source_code)
+      @source_code.show_line_numbers = true
+      font = Pango::FontDescription.new("Monospace Bold 10")
+      @source_code.modify_font(font)
+      @source_code.insert_spaces_instead_of_tabs = true
+      @source_code.indent_width = 2
+      @source_code.show_right_margin = true
+      @source_code.right_margin_position = 80
+      language = Gtk::SourceLanguageManager.new.get_language('ruby')
+      @source_code.buffer.language = language
+      @source_code.buffer.highlight_syntax = true
+      @source_code.buffer.highlight_matching_brackets = true
+      @source_code.visible = true
+      code_block = lambda {|value| @source_code.buffer.text = value}
+      self.attach_widget_to_attribute(@source_code, 'source_code', code_block)
     end
-    def load_treestore_from_hash(treestore, parent, hsh, &proc)
-      hsh.each do |key, value|
-        iter = treestore.append(parent)
-        proc.call(iter, key)
-        self.load_treestore_from_hash(treestore, iter, value, &proc)
+
+    def unhandled_signal(signal)
+      puts "Unhandled signal encountered: " + signal
+    end
+
+
+    def new_methods_liststore_for_class(class_info, methods_selector)
+      liststore = Gtk::ListStore.new(Object, String)
+      case methods_selector
+      when :instance_methods
+        methodInfoHash = class_info.inst_methods
+      when :class_methods
+        methodInfoHash = class_info.cls_methods
+      else
+        raise ArgumentError.new("Invalid method selector '#{symbol}'")
       end
-    end
-  def unhandled_signal(signal)
-    puts "Unhandled signal encountered: " + signal
-  end
-  def init_window
-    super
-    self.init_classes
-    self.init_methods
-  end
-  def init_classes
-    @classes = @builder.get_object("classes")
-    @classes.model = @model.classes_treestore
-    @classes.headers_visible = false
-    @classes_renderer = Gtk::CellRendererText.new
-    @classes_column = Gtk::TreeViewColumn.new("Class Name", @classes_renderer, :text => 0)
-    @classes.append_column(@classes_column)
-    @classes.selection.set_select_function do |selection, classes_model, path, currently_selected|
-      class_iter = classes_model.get_iter(path)
-      return true if class_iter.nil?
-      @controller.on_class_selected(self, @methods, class_iter, currently_selected)
-    end
-    def methods_type
-      :instance_methods
-    end
-  end
-  
-  
-  def init_methods
-    @methods = @builder.get_object("methods")
-    # @methods.model = @model.methods_liststore
-    @methods.headers_visible = false
-    @methods_renderer = Gtk::CellRendererText.new
-    @methods_column = Gtk::TreeViewColumn.new("Method Name", @methods_renderer, :text => 0)
-    @methods.append_column(@methods_column)
-  end
-  
-    def new_methods_liststore_for_class(class_name, methods_type)
-      liststore = Gtk::ListStore.new(String, String)
-      cls = Kernel.const_get(class_name)
-      cls.public_instance_methods(false).each do |mth| 
+      methodInfoHash.each_value do |method_info|
         iter = liststore.append
-        iter[0] = "+ " + mth.to_s
-        iter[1] = mth.to_s
+        iter[0] = method_info
+        iter[1] = method_info.method_name
       end
-      cls.private_instance_methods(false).each do |mth| 
-        iter = liststore.append
-        iter[0] = "- " + mth.to_s
-        iter[1] = mth.to_s
-      end
-      cls.protected_instance_methods(false).each do |mth| 
-        iter = liststore.append
-        iter[0] = "# " + mth.to_s
-        iter[1] = mth.to_s
-      end
-      liststore.set_sort_column_id(0)
+      liststore.set_sort_column_id(1)
       liststore
     end
     def register_methods_view_for_class(view, class_iter, methods_type)
-      key = class_iter[0] + '#' + methods_type.to_s
+      puts "register_methods_view_for_class"
+      key = class_iter[1] + '#' + methods_type.to_s
       if !@methods_liststores.include?(key)
         liststore = self.new_methods_liststore_for_class(class_iter[0], methods_type)
         @methods_liststores[key] = {liststore => []}
@@ -82,11 +152,13 @@ class ClassHeirarchyBrowserViewDefault < GMVC::View
       true
     end
     def unregister_methods_view_for_class(view, class_iter, methods_type)
-      key = class_iter[0] + '#' + methods_type.to_s
+      puts "unregister_methods_view_for_class"
+      key = class_iter[1] + '#' + methods_type.to_s
       return true if !@methods_liststores.include?(key)
       puts "problem" if @methods_liststores[key].values.first.delete(view).nil?
       @methods_liststores.delete(key) if @methods_liststores[key].values.first.size == 0
       view.model = nil
       true
     end
+  end
 end

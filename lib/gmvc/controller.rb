@@ -27,25 +27,26 @@ module GMVC
       puts "Loading glade file: #{self.class.glade_filename}"
       @builder = GMVC::Builder.new
       @builder.add_from_file(self.class.glade_filename)
-      
+
       @builder.top_windows.each do |obj|
+        puts "Found view '#{obj.builder_name}'"
         @view_names << obj.builder_name
       end
-      
       self.connect_signals
-      puts @view_names
     end
-    
+
     def connect_signals
       @builder.connect_signals do |handler|
         if self.methods.include?(handler.to_sym)
+          puts "Connecting signal #{handler}"
           self.method(handler)
         else
+          puts "Signal not handled: #{handler}"
           lambda { self.unhandled_signal(handler) }
         end
       end
     end
-    
+
     ## TODO: Everything below here is still being reworked and may end up in other classes
     def self.open
       self.new.open

@@ -6,7 +6,7 @@ module GMVC
       super
       @attached_objects = Hash.new
     end
-    
+
     def top_windows
       self.objects.select { |obj| obj.kind_of?(Gtk::Window) }
     end
@@ -14,8 +14,8 @@ module GMVC
     def __connect_signals__(connector, object, signal_name, handler_name, connect_object, flags)
       handler_name = canonical_handler_name(handler_name)
       attached_object = @attached_objects[object]
-      
-      # Instead of having a single if/elsif statement, we want to be able to 
+
+      # Instead of having a single if/elsif statement, we want to be able to
       # ask the connector block to attach the signal even if there is an attached
       # object or a connect_object and no handler was defined
       if attached_object and attached_object.methods.include?(handler_name)
@@ -44,7 +44,7 @@ module GMVC
         object.send(signal_connect_method, signal_name, &handler)
       end
     end
-    
+
     # Call this prior to connecting signals to attach signals to ruby objects
     def attach_to_object(gobject, object)
       gobject = self.get_object(gobject) if gobject.kind_of?(String)
@@ -52,8 +52,8 @@ module GMVC
         @attached_objects[gobject] = object
       else
         @attached_objects.delete(gobject)
-      end      
+      end
     end
-    
+
   end
 end

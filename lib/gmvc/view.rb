@@ -10,6 +10,9 @@ module GMVC
       @controller.connect_signals
       @gtk_window.signal_connect('delete_event') { self.on_delete_event }
       @gtk_window.signal_connect('destroy') { self.on_destroy }
+      self.init_window
+    end
+    def init_window
     end
     def show(*flags)
       flags = [:show] if flags.empty?
@@ -22,32 +25,41 @@ module GMVC
     end
     def detach_widgets_from_attributes
       @attached_widgets.each_key do |object, attribute|
-        @model.set_attribute_reaction(attribute, object)
+        @model.set_attribute_reaction(attribute, object, nil)
       end
     end
-    def attach_widget_to_attribute(widget, attribute, assignment_method)
-      object = @builder.get_object(widget)
+    def attach_widget_to_attribute(widget, attribute, assignment_block)
+      if widget.is_a?(String)
+        object = @builder.get_object(widget)
+      else
+        object = widget
+      end
+      if assignment_block.is_a?(Symbol)
+        block = lambda { |value| object.method(assignment_block).call(value) }
+      else
+        block = assignment_block
+      end
       return nil if !object
-      @model.set_attribute_reaction(attribute, object) { |value| object.method(assignment_method).call(value) }
-      @attached_widgets[[object, attribute]] = assignment_method
+      @model.set_attribute_reaction(attribute, object, block)
+      @attached_widgets[[object, attribute]] = block
       object
     end
-    
+
     def about_to_close
       puts "about_to_close"
       true # return true if its ok to close the window
     end
-    
+
     def close
       return if !self.about_to_close
       @gtk_window.destroy
     end
-    
+
     def on_delete_event
       puts "on_delete_event"
       !self.about_to_close
     end
-    
+
     def on_destroy
       self.detach_widgets_from_attributes
       puts "on_destroy"

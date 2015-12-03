@@ -1,4 +1,3 @@
-require 'gtk2'
 module GMVC
   class Builder < Gtk::Builder
     # Initialize our extra variables
@@ -12,7 +11,7 @@ module GMVC
     end
     # Replace the restrictive __connect_signals__ from Gtk::Builder
     def __connect_signals__(connector, object, signal_name, handler_name, connect_object, flags)
-      handler_name = canonical_handler_name(handler_name)
+      handler_name = normalize_handler_name(handler_name)
       attached_object = @attached_objects[object]
 
       # Instead of having a single if/elsif statement, we want to be able to

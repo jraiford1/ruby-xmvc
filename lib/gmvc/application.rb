@@ -1,5 +1,6 @@
-require 'gtk2'
+require 'gtk3'
 require_relative '../xmvc/application'
+require_relative 'prompter.rb'
 
 module GMVCApp
   def self.require_controller(controller_file)
@@ -11,7 +12,7 @@ module GMVCApp
 end
 
 module GMVC
-  
+
   class Application < XMVC::Application
     def windowing_system
       GMVCApp
@@ -21,7 +22,7 @@ module GMVC
     end
   end
   class DevApplication < XMVC::DevApplication
-    
+
     # GMVC::DevApplication::require_code_generators
     # Load the code generators code.  Only does this if app is a DevApplication to
     # save time when running in runtime mode.
@@ -29,7 +30,7 @@ module GMVC
       super
       require_relative 'code_generator'
     end
-    
+
     # GMVC::DevApplication::should_build_scaffolding?
     # Return true if scaffolding should be created, false otherwise
     def should_build_scaffolding?
@@ -39,27 +40,27 @@ module GMVC
       end
       super
     end
-    
+
     # GMVC::DevApplication::build_scaffolding
     # Based on the current code and files in the project, generate new directories
     # and files that are needed
     def build_scaffolding
       super
       @glade_files = Hash.new
-      
+
       self.create_project_directory(File.join(@project_directory, 'lib', 'gtk2'))
       self.create_project_directory(File.join(@project_directory, 'lib', 'gtk2', 'view'))
       self.create_project_directory(File.join(@project_directory, 'lib', 'gtk2', 'controller'))
       self.create_project_directory(File.join(@project_directory, 'lib', 'gtk2', 'glade'))
-      
+
       glade_dir = File.join(@project_directory, 'lib', 'gtk2', 'glade')
       return if !Dir.exists?(glade_dir)
-      
+
       Dir.glob(File.join(glade_dir, '*.glade')) do |glade_filename; glade_file|
         glade_file = GladeFile.new(glade_filename)
         @glade_files[glade_filename] = glade_file if glade_file.has_updates?
       end
-      
+
       return if @glade_files.empty?
       @glade_files.each_value do | glade_file |
         glade_file.build_scaffolding

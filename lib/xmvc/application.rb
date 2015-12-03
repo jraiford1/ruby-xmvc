@@ -1,12 +1,13 @@
+require_relative "prompter.rb"
 module XMVC
-  
+
   def self.convert_to_camelcase(str)
-    if str !~ /_/ && str =~ /[A-Z]+.*/ 
-      str 
-    else 
-      str.split('_').map{ |e| e.capitalize }.join 
-    end 
-  end 
+    if str !~ /_/ && str =~ /[A-Z]+.*/
+      str
+    else
+      str.split('_').map{ |e| e.capitalize }.join
+    end
+  end
   def self.convert_to_underscores(str)
     str.gsub(/(.)([A-Z])/,'\1_\2').downcase
   end
@@ -75,4 +76,3 @@ module XMVC
     end
   end
 end
-

@@ -1,18 +1,18 @@
 require 'set'
-require 'gtk2'
+require 'gtk3'
 
 module GMVC
   class View
     @@all_views = Set.new
     @@visible_windows = 0
     attr_accessor :controller, :builder, :window, :modal
-    
+
     def initialize(controller, model)
       @@all_views.add(self)
       @controller = controller
       @model = model
       self.load_from_file(self.class.glade_filename)
-      
+
       @builder = Gtk::Builder::new
       self.create_objects
       @window = @builder.get_object(self.class.window_name)
@@ -73,7 +73,7 @@ module GMVC
     end
     def on_destroy
       puts "on_destroy"
-      return if @@all_views.delete?(self).nil?   # just in case 
+      return if @@all_views.delete?(self).nil?   # just in case
       @@visible_windows -= 1
       @model.unregister_view(self) if !@model.nil?
       Gtk.main_quit() if (@@visible_windows <= 0) or (@@all_views.size == 0)

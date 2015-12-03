@@ -1,4 +1,4 @@
-require 'gtksourceview2'
+require 'gtksourceview3'
 
 module GMVCApp
   class ClassHeirarchyBrowserViewDefault < GMVC::View
@@ -20,6 +20,12 @@ module GMVCApp
       @class_tree_renderer = Gtk::CellRendererText.new
       @class_tree_column = Gtk::TreeViewColumn.new("Class Name", @class_tree_renderer, :text => 1)
       @class_tree.append_column(@class_tree_column)
+      @class_tree.signal_connect "cursor-changed" do |class_tree|
+        @controller.on_class_about_to_select(class_tree)
+      end
+      @class_tree.selection.signal_connect "changed" do |selection, class_tree_model|
+        @controller.on_class_selected(selection, class_tree_model, nil, nil)
+      end
       @class_tree.selection.set_select_function do |selection, class_tree_model, path, currently_selected|
         @controller.on_class_selected(selection, class_tree_model, path, currently_selected)
       end
@@ -31,7 +37,7 @@ module GMVCApp
         @model.classes.root_classes.each do |root_class_info|
           self.add_class_info(classes_treestore, nil, root_class_info)
         end
-        classes_treestore.set_sort_column_id(1)
+        classes_treestore.set_sort_column_id(1, Gtk::SortType::ASCENDING)
         @model['classes_treestore'] = classes_treestore
       end
       classes_treestore
@@ -79,9 +85,12 @@ module GMVCApp
       @methods_renderer = Gtk::CellRendererText.new
       column = Gtk::TreeViewColumn.new("Method Name", @methods_renderer, :text => 1)
       @methods_list.append_column(column)
-      @methods_list.selection.set_select_function do |selection, methods_model, path, currently_selected|
-        @controller.on_method_selected(selection, methods_model, path, currently_selected)
+      @methods_list.selection.signal_connect "changed" do |selection, methods_model|
+        @controller.on_method_selected(selection, methods_model, nil, nil)
       end
+      #@methods_list.selection.set_select_function do |selection, methods_model, path, currently_selected|
+      #  @controller.on_method_selected(selection, methods_model, path, currently_selected)
+      #end
     end
     def method_liststore(class_info)
       methods_liststores = @model['methods_liststores']
@@ -99,21 +108,28 @@ module GMVCApp
     end
 
     def init_source_code
-      @source_code = Gtk::SourceView.new
+      @source_code = GtkSource::View.new
       @builder.get_object("source_code_sw").add(@source_code)
       @source_code.show_line_numbers = true
       font = Pango::FontDescription.new("Monospace Bold 10")
-      @source_code.modify_font(font)
+      @source_code.override_font(font)
       @source_code.insert_spaces_instead_of_tabs = true
       @source_code.indent_width = 2
       @source_code.show_right_margin = true
       @source_code.right_margin_position = 80
-      language = Gtk::SourceLanguageManager.new.get_language('ruby')
+      language = GtkSource::LanguageManager.new.get_language('ruby')
       @source_code.buffer.language = language
       @source_code.buffer.highlight_syntax = true
       @source_code.buffer.highlight_matching_brackets = true
       @source_code.visible = true
-      code_block = lambda {|value| @source_code.buffer.text = value}
+      code_block = lambda do |value|
+        buffer = @source_code.buffer
+        puts buffer.undo_manager
+        old-max-levels = buffer.max-undo-levels
+        buffer.max-undo-levels = 0
+        buffer.text = value
+        buffer.max-undo-levels = old-max-levels
+      end
       self.attach_widget_to_attribute(@source_code, 'source_code', code_block)
     end
 
@@ -137,7 +153,7 @@ module GMVCApp
         iter[0] = method_info
         iter[1] = method_info.method_name
       end
-      liststore.set_sort_column_id(1)
+      liststore.set_sort_column_id(1, Gtk::SortType::ASCENDING)
       liststore
     end
     def register_methods_view_for_class(view, class_iter, methods_type)

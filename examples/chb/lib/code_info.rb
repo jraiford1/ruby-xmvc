@@ -22,21 +22,41 @@ module XMVCApp
       @class_info = class_info
       @method_name = method_name
       @method_type = method_type
-      puts "#{class_info.real_class}.#{method_name} (#{@method_type})"
+      #puts "#{class_info.real_class}.#{method_name} (#{@method_type})"
       case method_type
       when :instance_methods
         @real_method = class_info.real_class.instance_method(@method_name)
-        puts @real_method
+        #puts @real_method
       when :class_methods
         @real_method = class_info.real_class.singleton_method(@method_name)
-        puts @real_method
+        #puts @real_method
       else
         @real_method = nil
+      end
+      begin
+        @source_code_history = [@real_method.source]
+      rescue Exception => exception
+        @source_code_history = []
+      end
+    end
+    def source_code
+      if (@source_code_history.size == 0)
+        "<Source code not available>"
+        RubyVM::InstructionSequence.disasm(@real_method)
+      else
+        @source_code_history.last
       end
     end
   end
   class MethodSource
-    attr_reader :method_info
+    attr_accessor :method_info, :changed_on, :source_code
+    def initialize(method_info, source_code)
+      @method_info = method_info
+      @source_code = source_code
+      self.process_header
+    end
+    def process_header
+    end
   end
   class ClassInfo < CodeInfo
     attr_accessor :superclass, :real_class, :subclasses, :class_name

@@ -1,7 +1,9 @@
 #!/usr/bin/env ruby
 require 'singleton'
 require 'set'
-require 'gtk2'
+require 'gtk3'
+require 'method_source'
+require 'gtksourceview3'
 require_relative 'code_info'
 require_relative '../../../lib/gmvc'
 require_relative 'window/class_heirarchy_browser_window'

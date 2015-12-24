@@ -1,5 +1,6 @@
 require 'set'
 require 'method_source'
+require 'parser/current'
 
 module XMVCApp
   class CodeInfo
@@ -22,30 +23,48 @@ module XMVCApp
       @class_info = class_info
       @method_name = method_name
       @method_type = method_type
-      #puts "#{class_info.real_class}.#{method_name} (#{@method_type})"
-      case method_type
+    end
+    def init_method
+      case @method_type
       when :instance_methods
-        @real_method = class_info.real_class.instance_method(@method_name)
-        #puts @real_method
+        @real_method = @class_info.real_class.instance_method(@method_name)
       when :class_methods
-        @real_method = class_info.real_class.singleton_method(@method_name)
-        #puts @real_method
+        @real_method = @class_info.real_class.singleton_method(@method_name)
       else
-        @real_method = nil
+        raise "Invalid method type"
       end
+      @source_code_history ||= []
       begin
-        @source_code_history = [@real_method.source]
+        @source_code_history << @real_method.source
       rescue Exception => exception
-        @source_code_history = []
+        begin
+          source_code = RubyVM::InstructionSequence.disasm(@real_method)
+          if source_code.nil? then
+            source_code  = "<Source code not available>"
+          end
+          @source_code_history << source_code
+        rescue Exception => exception2
+          @source_code_history << "<Source code not available>"
+        end
       end
     end
-    def source_code
-      if (@source_code_history.size == 0)
-        "<Source code not available>"
-        RubyVM::InstructionSequence.disasm(@real_method)
+    def update_method(source_code)
+      case @method_type
+      when :instance_methods
+        @real_method = @class_info.real_class.instance_method(@method_name)
+      when :class_methods
+        @real_method = @class_info.real_class.singleton_method(@method_name)
       else
-        @source_code_history.last
+        raise "Invalid method type"
       end
+      @source_code_history ||= []
+      @source_code_history << source_code
+    end
+    def source_code
+      if (@source_code_history.nil?) then
+        self.init_method
+      end
+      @source_code_history.last
     end
   end
   class MethodSource
@@ -71,6 +90,33 @@ module XMVCApp
     end
     def cls_methods
       @cls_methods ||= MethodInfoHash.new(self, @real_class.singleton_methods(false), :class_methods)
+    end
+    def add_method_from_source(raw_source_code, method_type)
+      return nil if raw_source_code.nil?
+      parser = Parser::CurrentRuby.parse_with_comments(raw_source_code)
+      #TODO - build the source code from the parse tree for consistent code and to eliminate tricks
+      source_code = raw_source_code
+      case method_type
+      when :instance_methods
+        if (parser[0].type == :def) then
+          @real_class.class_eval(source_code)
+          method_name = parser[0].children[0]
+          method_info = @inst_methods[method_name] ||= MethodInfo.new(self, method_name, method_type)
+          method_info.source_code = source_code
+        end
+        error_msg = "Invalid class method definition"
+      when :class_methods
+        if (parser[0].type == :defs) & (parser[0].children[0].type == :self) then
+          @real_class.instance_eval(source_code)
+          method_name = parser[0].children[1]
+          method_info = @cls_methods[method_name] ||= MethodInfo.new(self, method_name, method_type)
+          method_info.source_code = source_code
+        end
+        error_msg = "Invalid class method definition"
+      else
+        error_msg = "Invalid method type"
+      end
+      raise error_msg
     end
   end
   class CodeInfoHash

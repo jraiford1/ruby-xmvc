@@ -7,10 +7,11 @@ module GMVC
       dialog = Gtk::MessageDialog.new(
         :type => Gtk::MessageType::INFO)
       if title.nil?
+        dialog.title = "Information"
         dialog.text = message
       else
-        dialog.text = title
-        dialog.secondary_text = message
+        dialog.title = title
+        dialog.text = message
       end
       dialog.run
       dialog.hide

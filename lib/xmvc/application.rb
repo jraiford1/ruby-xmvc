@@ -15,8 +15,10 @@ module XMVC
     require File.join($project_directory, 'lib/model', model_file)
   end
   class Application
+    attr_reader :name
     def initialize
       $application = self
+      @name = File.basename($PROGRAM_NAME)
       src = self.method(:main).source_location
       raise "Unable to find method location for self.main" if !src
       src = File.expand_path(src.first)

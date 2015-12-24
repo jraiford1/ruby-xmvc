@@ -22,14 +22,18 @@ module GMVCApp
     end
     def save_changes
       return true if @current_method_info.nil?
-      if @view.source_code.buffer.text == @current_method_info.source_code
-        puts "no change"
-        true
-      else
-        GMVC::Prompter.display("Save Changes?")
-        puts "save changes"
-        false
+      if @view.source_code.buffer.text != @current_method_info.source_code
+        should_save = @view.message_confirm_with_cancel("Save Changes?")
+        case should_save
+          when Gtk::ResponseType::YES
+            puts "save changes"
+          when Gtk::ResponseType::NO
+            return true
+          else
+            return false
+        end
       end
+      true
     rescue Exception => e
       self.exception_handler(e,$!)
     end
@@ -40,27 +44,22 @@ module GMVCApp
     rescue Exception => e
       self.exception_handler(e,$!)
     end
-    def on_class_about_to_select(class_tree)
-      class_iter = class_tree.selection.selected
-      return true if class_iter.nil?
-      return false if !self.save_changes
-      false
-    end
-
-    def on_class_selected(selection, treestore, path, currently_selected)
+    def about_to_select_class(selection, treestore, path, currently_selected)
+      return true if !currently_selected
       class_iter = selection.selected
       return true if class_iter.nil?
       return false if !self.save_changes
+      true
+    end
+    def class_selected(selection, treestore)
+      class_iter = selection.selected
+      return true if class_iter.nil?
       @current_method_info = nil
       class_info = class_iter[0]
       @view.class_info = class_info
-      if !currently_selected
-        @current_class_info = class_info
-        self.update_methods
-        @view.source_code.buffer.text = self.class_definition(@current_class_info)
-      else
-        #@view.unregister_methods_view_for_class(treeview, class_iter, view.methods_selector)
-      end
+      @current_class_info = class_info
+      self.update_methods
+      @view.source_code.buffer.text = self.class_definition(@current_class_info)
       true
     rescue Exception => e
       self.exception_handler(e,$!)
@@ -86,18 +85,20 @@ module GMVCApp
     def update_methods
       @view.methods_list.model = @view.method_liststore(@view.class_info)
     end
-    def on_method_selected(selection, methods_model, path, currently_selected)
+    def about_to_select_method(selection, methods_model, path, currently_selected)
       method_iter = selection.selected
-      puts method_iter #if currently_selected
+      return true if !currently_selected
       return true if method_iter.nil?
       return false if !self.save_changes
+      true
+    end
+    def method_selected(selection, methods_model)
+      method_iter = selection.selected
+      return true if method_iter.nil?
       method_info = method_iter[0]
       class_info = method_info.class_info
-      if !currently_selected
-        puts method_info.real_method
-        @current_method_info = method_info
-        @view.source_code.buffer.text = method_info.source_code
-      end
+      @current_method_info = method_info
+      @view.source_code.buffer.text = method_info.source_code
       true
     rescue Exception => exception
       @view.source_code.buffer.text = exception.backtrace.join("\n")

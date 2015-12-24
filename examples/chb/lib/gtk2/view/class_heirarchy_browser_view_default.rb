@@ -20,14 +20,11 @@ module GMVCApp
       @class_tree_renderer = Gtk::CellRendererText.new
       @class_tree_column = Gtk::TreeViewColumn.new("Class Name", @class_tree_renderer, :text => 1)
       @class_tree.append_column(@class_tree_column)
-      @class_tree.signal_connect "cursor-changed" do |class_tree|
-        @controller.on_class_about_to_select(class_tree)
-      end
       @class_tree.selection.signal_connect "changed" do |selection, class_tree_model|
-        @controller.on_class_selected(selection, class_tree_model, nil, nil)
+        @controller.class_selected(selection, class_tree_model)
       end
       @class_tree.selection.set_select_function do |selection, class_tree_model, path, currently_selected|
-        @controller.on_class_selected(selection, class_tree_model, path, currently_selected)
+        @controller.about_to_select_class(selection, class_tree_model, path, currently_selected)
       end
     end
     def classes_treestore
@@ -86,11 +83,11 @@ module GMVCApp
       column = Gtk::TreeViewColumn.new("Method Name", @methods_renderer, :text => 1)
       @methods_list.append_column(column)
       @methods_list.selection.signal_connect "changed" do |selection, methods_model|
-        @controller.on_method_selected(selection, methods_model, nil, nil)
+        @controller.method_selected(selection, methods_model)
       end
-      #@methods_list.selection.set_select_function do |selection, methods_model, path, currently_selected|
-      #  @controller.on_method_selected(selection, methods_model, path, currently_selected)
-      #end
+      @methods_list.selection.set_select_function do |selection, methods_model, path, currently_selected|
+        @controller.about_to_select_method(selection, methods_model, path, currently_selected)
+      end
     end
     def method_liststore(class_info)
       methods_liststores = @model['methods_liststores']

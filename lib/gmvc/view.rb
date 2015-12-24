@@ -64,5 +64,59 @@ module GMVC
       self.detach_widgets_from_attributes
       puts "on_destroy"
     end
+    def message_dialog(argumentHash = nil)
+      hash = {:parent => @gtk_window}
+      if !argumentHash.nil?
+        argumentHash.each do |key, value|
+          hash[key] = value
+        end
+      end
+      hash[:type] ||= :info
+      hash[:title] ||= $application.name
+      if hash[:buttons_type].nil?
+        if hash[:button_array].nil?
+          hash[:buttons_type] = :ok
+        else
+          hash[:buttons_type] = :none
+        end
+      end
+      hash[:button_array] ||= []
+      dialog = Gtk::MessageDialog.new(hash)
+      dialog.title = hash[:title]
+      hash[:button_array].each do |symbol|
+        dialog.add_button(symbol.to_s.capitalize, symbol)
+      end
+      answer = dialog.run
+      dialog.destroy
+      return answer
+    end
+    def message_box(message_text, title = $application.name, type = :info)
+      answer = self.message_dialog({:message => message_text, :title => title, :type => type})
+      if answer == Gtk::ResponseType::DELETE_EVENT
+        return Gtk::ResponseType::OK
+      end
+      return answer
+    end
+    def message_confirm(message_text, title = $application.name)
+      hash = {:message => message_text,
+              :title => title,
+              :type => :question,
+              :button_array => [:yes, :no]}
+      begin
+        answer = self.message_dialog(hash)
+      end while answer != Gtk::ResponseType::DELETE_EVENT
+      return answer
+    end
+    def message_confirm_with_cancel(message_text, title = $application.name)
+      hash = {:message => message_text,
+              :title => title,
+              :type => :question,
+              :button_array => [:yes, :no, :cancel]}
+      answer = self.message_dialog(hash)
+      if answer == Gtk::ResponseType::DELETE_EVENT
+        return Gtk::ResponseType::CANCEL
+      end
+      return answer
+    end
   end
 end

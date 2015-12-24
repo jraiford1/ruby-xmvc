@@ -4,6 +4,7 @@ require 'set'
 require 'gtk3'
 require 'method_source'
 require 'gtksourceview3'
+require 'parser/current'
 require_relative 'code_info'
 require_relative '../../../lib/gmvc'
 require_relative 'window/class_heirarchy_browser_window'
@@ -11,6 +12,10 @@ require_relative 'window/class_heirarchy_browser_window'
 module XMVCApp
   class CHBApp < GMVC::Application
     include Singleton
+    def initialize
+      super
+      @name = "Ruby CHB"
+    end
     def main
       win1 = ClassHeirarchyBrowserWindow.new
       puts self.class_info_hash.keys.size

@@ -9,7 +9,7 @@ module GMVCApp
       self.exception_handler(e,$!)
     end
     def on_code_save_action_activate
-      puts "TODO: Save the code!"
+      self.save_changes
     rescue Exception => e
       self.exception_handler(e,$!)
     end
@@ -20,22 +20,33 @@ module GMVCApp
     rescue Exception => e
       self.exception_handler(e,$!)
     end
-    def save_changes
+    def ok_to_change?
       return true if @current_method_info.nil?
       if @view.source_code.buffer.text != @current_method_info.source_code
         should_save = @view.message_confirm_with_cancel("Save Changes?")
         case should_save
-          when Gtk::ResponseType::YES
-            puts "save changes"
-          when Gtk::ResponseType::NO
-            return true
-          else
-            return false
+        when Gtk::ResponseType::YES
+          return self.save_changes
+        when Gtk::ResponseType::NO
+          return true
         end
+        false
+      end
+    end
+    def save_changes
+      return true if @current_method_info.nil?
+      source_code = @view.source_code.buffer.text
+      if source_code != @current_method_info.source_code
+        new_method_info = @current_method_info.class_info.add_method_from_source(source_code, @current_method_info.method_type)
+        if (new_method_info.nil?) then
+          return false
+        end
+        @current_method_info = new_method_info
       end
       true
     rescue Exception => e
       self.exception_handler(e,$!)
+      return false
     end
     def on_rb_instance_clicked
       @rb_instance ||= @builder.get_object("rb_instance")

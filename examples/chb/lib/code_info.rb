@@ -102,7 +102,8 @@ module XMVCApp
           @real_class.class_eval(source_code)
           method_name = parser[0].children[0]
           method_info = @inst_methods[method_name] ||= MethodInfo.new(self, method_name, method_type)
-          method_info.source_code = source_code
+          method_info.update_method(source_code)
+          return method_info
         end
         error_msg = "Invalid class method definition"
       when :class_methods
@@ -111,6 +112,7 @@ module XMVCApp
           method_name = parser[0].children[1]
           method_info = @cls_methods[method_name] ||= MethodInfo.new(self, method_name, method_type)
           method_info.source_code = source_code
+          return method_info
         end
         error_msg = "Invalid class method definition"
       else

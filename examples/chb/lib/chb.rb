@@ -8,6 +8,9 @@ require 'parser/current'
 require_relative 'code_info'
 require_relative '../../../lib/gmvc'
 require_relative 'window/class_heirarchy_browser_window'
+require_relative 'model/class_heirarchy_browser_model'
+require_relative 'gtk2/controller/class_heirarchy_browser_controller'
+require_relative 'gtk2/view/class_heirarchy_browser_view_default'
 require_relative 'change_log.rb'
 
 module XMVCApp

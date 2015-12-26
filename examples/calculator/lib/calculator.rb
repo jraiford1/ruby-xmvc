@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require_relative '../../../lib/gmvc'
 require_relative 'window/calculator_window'
 

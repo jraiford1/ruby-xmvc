@@ -1,6 +1,5 @@
 module GMVCApp
   class ClassHeirarchyBrowserController < GMVC::Controller
-
     def on_quit_action_activate
       puts "Quit!"
       @view.close
@@ -30,8 +29,9 @@ module GMVCApp
         when Gtk::ResponseType::NO
           return true
         end
-        false
+        return false
       end
+      true
     end
     def save_changes
       return true if @current_method_info.nil?
@@ -59,8 +59,7 @@ module GMVCApp
       return true if !currently_selected
       class_iter = selection.selected
       return true if class_iter.nil?
-      return false if !self.save_changes
-      true
+      self.ok_to_change?
     end
     def class_selected(selection, treestore)
       class_iter = selection.selected
@@ -100,8 +99,7 @@ module GMVCApp
       method_iter = selection.selected
       return true if !currently_selected
       return true if method_iter.nil?
-      return false if !self.save_changes
-      true
+      self.ok_to_change?
     end
     def method_selected(selection, methods_model)
       method_iter = selection.selected

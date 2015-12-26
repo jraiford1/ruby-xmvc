@@ -8,6 +8,7 @@ require 'parser/current'
 require_relative 'code_info'
 require_relative '../../../lib/gmvc'
 require_relative 'window/class_heirarchy_browser_window'
+require_relative 'change_log.rb'
 
 module XMVCApp
   class CHBApp < GMVC::Application

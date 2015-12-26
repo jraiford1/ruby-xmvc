@@ -59,6 +59,13 @@ module XMVCApp
       end
       @source_code_history ||= []
       @source_code_history << source_code
+      open('change_log.rb', 'a') do |file|
+        file.puts "\# #{Time.now}"
+        file.puts "class #{@class_info.real_class.name}"
+        file.puts source_code
+        file.puts "end"
+        file.puts "\n"
+      end
     end
     def source_code
       if (@source_code_history.nil?) then

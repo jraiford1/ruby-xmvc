@@ -20,13 +20,17 @@ module XMVCApp
       super
       @name = "Ruby CHB"
     end
-    def main
-      win1 = ClassHeirarchyBrowserWindow.new
-      puts self.class_info_hash.keys.size
-      puts self.method_infos.keys.size
-      win1.show
-      self.perform_window_events
-    end
+      def main
+        win1 = ClassHeirarchyBrowserWindow.new
+        puts self.class_info_hash.keys.size
+        puts self.method_infos.keys.size
+        win1.show
+        win2 = ClassHeirarchyBrowserWindow.new(win1.model)
+        win2.show
+        win3 = ClassHeirarchyBrowserWindow.new(win1.model)
+        win3.show
+        self.perform_window_events
+      end
     def class_info_hash
       if !@class_info_hash.nil?
         return @class_info_hash

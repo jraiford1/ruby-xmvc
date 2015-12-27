@@ -61,9 +61,24 @@ module XMVCApp
       @source_code_history << source_code
       open('change_log.rb', 'a') do |file|
         file.puts "\# #{Time.now}"
-        file.puts "class #{@class_info.real_class.name}"
+        namespaces = @class_info.real_class.name.split('::')
+        namespaces.size.times.each do |i|
+          class_or_module_name = namespaces[0,i+1].join('::')
+          class_or_module = Object.const_get(class_or_module_name)
+          line = '  ' * i
+          line << class_or_module.class.name.downcase
+          line << ' '
+          line << class_or_module_name.split('::').last
+          if (class_or_module.class == Class) and (!class_or_module.superclass.nil?) then
+            line << ' < '
+            line << class_or_module.superclass.name
+          end
+          file.puts line
+        end
         file.puts source_code
-        file.puts "end"
+        namespaces.size.times.reverse_each do |i|
+          file.puts "#{'  '*i}end"
+        end
         file.puts "\n"
       end
     end
@@ -98,34 +113,48 @@ module XMVCApp
     def cls_methods
       @cls_methods ||= MethodInfoHash.new(self, @real_class.singleton_methods(false), :class_methods)
     end
-    def add_method_from_source(raw_source_code, method_type)
+    def add_method_from_source(raw_source_code, method_type, liststore)
       return nil if raw_source_code.nil?
       parser = Parser::CurrentRuby.parse_with_comments(raw_source_code)
       #TODO - build the source code from the parse tree for consistent code and to eliminate tricks
       source_code = raw_source_code
+      add_to_liststore = false
       case method_type
       when :instance_methods
+        error_msg = "Invalid class method definition"
         if (parser[0].type == :def) then
           @real_class.class_eval(source_code)
           method_name = parser[0].children[0]
-          method_info = @inst_methods[method_name] ||= MethodInfo.new(self, method_name, method_type)
-          method_info.update_method(source_code)
-          return method_info
+          method_info = @inst_methods[method_name]
+          if method_info.nil? then
+            method_info = MethodInfo.new(self, method_name, method_type)
+            @inst_methods[method_name] = method_info
+            add_to_liststore = true
+          end
         end
-        error_msg = "Invalid class method definition"
       when :class_methods
+        error_msg = "Invalid class method definition"
         if (parser[0].type == :defs) & (parser[0].children[0].type == :self) then
           @real_class.instance_eval(source_code)
           method_name = parser[0].children[1]
-          method_info = @cls_methods[method_name] ||= MethodInfo.new(self, method_name, method_type)
-          method_info.source_code = source_code
-          return method_info
+          method_info = @cls_methods[method_name]
+          if method_info.nil? then
+            method_info = MethodInfo.new(self, method_name, method_type)
+            @cls_methods[method_name] = method_info
+            add_to_liststore = true
+          end
         end
-        error_msg = "Invalid class method definition"
       else
         error_msg = "Invalid method type"
       end
-      raise error_msg
+      raise error_msg if method_info.nil?
+      method_info.update_method(source_code)
+      if add_to_liststore then
+        iter = liststore.append
+        iter[0] = method_info
+        iter[1] = method_info.method_name
+      end
+      method_info
     end
   end
   class CodeInfoHash

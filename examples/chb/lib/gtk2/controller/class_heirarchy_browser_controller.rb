@@ -37,7 +37,7 @@ module GMVCApp
       return true if @current_method_info.nil?
       source_code = @view.source_code.buffer.text
       if source_code != @current_method_info.source_code
-        new_method_info = @current_method_info.class_info.add_method_from_source(source_code, @current_method_info.method_type)
+        new_method_info = @current_method_info.class_info.add_method_from_source(source_code, @current_method_info.method_type, @view.methods_list.model)
         if (new_method_info.nil?) then
           return false
         end
